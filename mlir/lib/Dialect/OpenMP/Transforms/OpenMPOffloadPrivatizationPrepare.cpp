@@ -207,14 +207,14 @@ class PrepareForOMPOffloadPrivatizationPass
           assert(!region.empty() && "region cannot be empty");
           LLVM::LLVMFuncOp func = createFuncOpForRegion(
               loc, mod, region, funcName, rewriter, returnsValue);
-          auto call = LLVM::CallOp::create(rewriter, loc, func, args);
+          auto call = rewriter.create<LLVM::CallOp>(loc, func, args);
           return call.getResult();
         };
 
         Value moldArg, newArg;
         if (isPrivatizedByValue) {
-          moldArg = LLVM::LoadOp::create(rewriter, loc, varType, varPtr);
-          newArg = LLVM::LoadOp::create(rewriter, loc, varType, heapMem);
+          moldArg = rewriter.create<LLVM::LoadOp>(loc, varType, varPtr);
+          newArg = rewriter.create<LLVM::LoadOp>(loc, varType, heapMem);
         } else {
           moldArg = varPtr;
           newArg = heapMem;
@@ -236,7 +236,7 @@ class PrepareForOMPOffloadPrivatizationPass
               {moldArg, initializedVal}, /*returnsValue=*/true);
 
         if (isPrivatizedByValue)
-          (void)LLVM::StoreOp::create(rewriter, loc, initializedVal, heapMem);
+          (void)rewriter.create<LLVM::StoreOp>(loc, initializedVal, heapMem);
 
         // clone origOp, replace all uses of varPtr with heapMem and
         // erase origOp.
@@ -280,8 +280,8 @@ class PrepareForOMPOffloadPrivatizationPass
         // targetOp.
         if (isPrivatizedByValue) {
           rewriter.setInsertionPoint(targetOp);
-          auto newPrivVar = LLVM::LoadOp::create(rewriter, mapInfoOp.getLoc(),
-                                                 varType, heapMem);
+          auto newPrivVar = rewriter.create<LLVM::LoadOp>(mapInfoOp.getLoc(),
+                                                          varType, heapMem);
           newPrivVars.push_back(newPrivVar);
         }
 
@@ -299,7 +299,7 @@ class PrepareForOMPOffloadPrivatizationPass
             cleanupTaskOp = omp::TaskOp::create(rewriter, loc, taskOperands);
             Block *taskBlock = rewriter.createBlock(&cleanupTaskOp.getRegion());
             rewriter.setInsertionPointToEnd(taskBlock);
-            omp::TerminatorOp::create(rewriter, cleanupTaskOp.getLoc());
+            rewriter.create<omp::TerminatorOp>(cleanupTaskOp.getLoc());
           }
           rewriter.setInsertionPointToStart(
               &*cleanupTaskOp.getRegion().getBlocks().begin());
@@ -312,8 +312,8 @@ class PrepareForOMPOffloadPrivatizationPass
               LLVM::lookupOrCreateFreeFn(rewriter, mod);
           assert(llvm::succeeded(freeFunc) &&
                  "Could not find free in the module");
-          (void)LLVM::CallOp::create(rewriter, loc, freeFunc.value(),
-                                     ValueRange{heapMem});
+          (void)rewriter.create<LLVM::CallOp>(loc, freeFunc.value(),
+                                              ValueRange{heapMem});
         }
       }
       assert(newPrivVars.size() == privateVars.size() &&
@@ -395,11 +395,11 @@ private:
     const DataLayout &dl = DataLayout(mod);
     std::int64_t distance = getSizeInBytes(dl, varType);
 
-    Value sizeBytes = LLVM::ConstantOp::create(
-        rewriter, loc, mallocFn.getFunctionType().getParamType(0), distance);
+    Value sizeBytes = rewriter.create<LLVM::ConstantOp>(
+        loc, mallocFn.getFunctionType().getParamType(0), distance);
 
     auto mallocCallOp =
-        LLVM::CallOp::create(rewriter, loc, mallocFn, ValueRange{sizeBytes});
+        rewriter.create<LLVM::CallOp>(loc, mallocFn, ValueRange{sizeBytes});
     return mallocCallOp.getResult();
   }
 
