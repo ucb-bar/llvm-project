@@ -2385,6 +2385,7 @@ include "RISCVInstrInfoXMips.td"
 include "RISCVInstrInfoXRivos.td"
 include "RISCVInstrInfoXAndes.td"
 include "RISCVInstrInfoXSpacemiT.td"
+include "RISCVInstrInfoXUCBBAR.td"
 include "RISCVInstrInfoXAIF.td"
 
 //===----------------------------------------------------------------------===//

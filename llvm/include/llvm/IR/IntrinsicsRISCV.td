@@ -1989,3 +1989,4 @@ include "llvm/IR/IntrinsicsRISCVXMIPS.td"
 //===----------------------------------------------------------------------===//
 // Custom Extension
 include "llvm/IR/IntrinsicsRISCVXSpacemiT.td"
+include "llvm/IR/IntrinsicsRISCVXUCBBAR.td"
