@@ -1749,6 +1749,14 @@ def HasVendorXSMTVDot
       AssemblerPredicate<(all_of FeatureVendorXSMTVDot),
                          "'XSMTVDot' (SpacemiT Vector Dot Product Extension)">;
 
+// Saturn OPU vendor extension
+def FeatureVendorXOPU
+    : SubtargetFeature<"xopu",
+                       "HasVendorXOPU",
+                       "true",
+                       "Enable Saturn OPU outer-product instructions">;
+def HasVendorXOPU : Predicate<"Subtarget->hasVendorXOPU()">;
+
 def FeatureVendorXAIFET
     : RISCVExtension<1, 0, "AI Foundry ET Extension", [FeatureStdExtF]>;
 def HasXAIFET : Predicate<"Subtarget->hasXAIFET()">,
