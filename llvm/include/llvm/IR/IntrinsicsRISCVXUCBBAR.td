@@ -41,4 +41,98 @@ let TargetPrefix = "riscv" in {
       Intrinsic<[],
                 [llvm_anyvector_ty, llvm_anyvector_ty, llvm_anyint_ty],
                 [IntrHasSideEffects, IntrWillReturn]>;
+
+  // Gemmini-MX RoCC intrinsics.
+  //
+  // Merlin currently lowers Gemmini operations through a fixed RV64 host
+  // interface, materializing rs1/rs2 payloads as i64 values before export to
+  // LLVM IR. Keep these intrinsics non-overloaded so the LLVM backend surface
+  // matches that lowering directly.
+  def int_riscv_flush :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_config :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_mvin :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_mvin2 :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_mvin3 :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_mvout :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_preload :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_compute_preloaded :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_compute_accumulated :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_ws_config_bounds :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_ws_config_addrs_ab :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_ws_config_addrs_dc :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_ws_config_strides_ab :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_ws_config_strides_dc :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_ws :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_conv_ws_config1 :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_conv_ws_config2 :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_conv_ws_config3 :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_conv_ws_config4 :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_conv_ws_config5 :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_conv_ws_config6 :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_loop_conv_ws :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
 }
