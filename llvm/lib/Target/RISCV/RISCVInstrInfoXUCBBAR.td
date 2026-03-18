@@ -246,8 +246,112 @@ let Predicates = [HasVendorXOPU] in {
                                               (XLenVT GPR:$vl))),
               (OPU_VMV_VR_Pseudo $row, $vl, 5, 1)>;
 
-    def : Pat<(int_riscv_opu_vopacc nxv8i8:$lhs,
+def : Pat<(int_riscv_opu_vopacc nxv8i8:$lhs,
                                       nxv8i8:$rhs,
                                       (XLenVT GPR:$vl)),
               (OPU_VOPACC_Pseudo $lhs, $rhs, $vl, 3, 1)>;
 }
+
+//------------------------------------------------------------------------------
+// Gemmini-MX RoCC instructions.
+//
+// Gemmini uses the custom-3 major opcode with a RoCC-style R-type encoding:
+// - funct7 carries the Gemmini command id.
+// - funct3 is 0b011 for commands with xs1=1, xs2=1, xd=0.
+// - rd is forced to x0.
+//
+// Merlin lowers Gemmini operations to explicit LLVM intrinsics carrying the
+// packed rs1/rs2 payloads, so the backend only needs direct intrinsic-to-
+// instruction patterns here.
+//------------------------------------------------------------------------------
+
+let hasSideEffects = 1 in {
+  class RVInstGemminiRR<bits<7> funct7, string opcodestr>
+      : RVInstR<funct7, 0b011, OPC_CUSTOM_3, (outs),
+                (ins GPR:$rs1, GPR:$rs2), opcodestr, "$rs1, $rs2"> {
+    let rd = 0;
+  }
+}
+
+let mayLoad = 1, mayStore = 1 in {
+  def GEMMINI_CONFIG : RVInstGemminiRR<0, "gemmini.config">;
+  def GEMMINI_PRELOAD : RVInstGemminiRR<6, "gemmini.preload">;
+  def GEMMINI_COMPUTE_PRELOADED
+      : RVInstGemminiRR<4, "gemmini.compute.preloaded">;
+  def GEMMINI_COMPUTE_ACCUMULATED
+      : RVInstGemminiRR<5, "gemmini.compute.accumulated">;
+  def GEMMINI_FLUSH : RVInstGemminiRR<7, "gemmini.flush">;
+  def GEMMINI_LOOP_WS_CONFIG_BOUNDS
+      : RVInstGemminiRR<9, "gemmini.loop_ws.config.bounds">;
+  def GEMMINI_LOOP_WS_CONFIG_ADDRS_AB
+      : RVInstGemminiRR<10, "gemmini.loop_ws.config.addrs.ab">;
+  def GEMMINI_LOOP_WS_CONFIG_ADDRS_DC
+      : RVInstGemminiRR<11, "gemmini.loop_ws.config.addrs.dc">;
+  def GEMMINI_LOOP_WS_CONFIG_STRIDES_AB
+      : RVInstGemminiRR<12, "gemmini.loop_ws.config.strides.ab">;
+  def GEMMINI_LOOP_WS_CONFIG_STRIDES_DC
+      : RVInstGemminiRR<13, "gemmini.loop_ws.config.strides.dc">;
+  def GEMMINI_LOOP_CONV_WS_CONFIG1
+      : RVInstGemminiRR<16, "gemmini.loop_conv_ws.config1">;
+  def GEMMINI_LOOP_CONV_WS_CONFIG2
+      : RVInstGemminiRR<17, "gemmini.loop_conv_ws.config2">;
+  def GEMMINI_LOOP_CONV_WS_CONFIG3
+      : RVInstGemminiRR<18, "gemmini.loop_conv_ws.config3">;
+  def GEMMINI_LOOP_CONV_WS_CONFIG4
+      : RVInstGemminiRR<19, "gemmini.loop_conv_ws.config4">;
+  def GEMMINI_LOOP_CONV_WS_CONFIG5
+      : RVInstGemminiRR<20, "gemmini.loop_conv_ws.config5">;
+  def GEMMINI_LOOP_CONV_WS_CONFIG6
+      : RVInstGemminiRR<21, "gemmini.loop_conv_ws.config6">;
+  def GEMMINI_MVIN : RVInstGemminiRR<2, "gemmini.mvin">;
+  def GEMMINI_MVIN2 : RVInstGemminiRR<1, "gemmini.mvin2">;
+  def GEMMINI_MVIN3 : RVInstGemminiRR<14, "gemmini.mvin3">;
+  def GEMMINI_MVOUT : RVInstGemminiRR<3, "gemmini.mvout">;
+  def GEMMINI_LOOP_WS : RVInstGemminiRR<8, "gemmini.loop_ws">;
+  def GEMMINI_LOOP_CONV_WS : RVInstGemminiRR<15, "gemmini.loop_conv_ws">;
+}
+
+def : Pat<(int_riscv_flush GPR:$rs1, GPR:$rs2),
+          (GEMMINI_FLUSH GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_config GPR:$rs1, GPR:$rs2),
+          (GEMMINI_CONFIG GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_mvin GPR:$rs1, GPR:$rs2),
+          (GEMMINI_MVIN GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_mvin2 GPR:$rs1, GPR:$rs2),
+          (GEMMINI_MVIN2 GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_mvin3 GPR:$rs1, GPR:$rs2),
+          (GEMMINI_MVIN3 GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_mvout GPR:$rs1, GPR:$rs2),
+          (GEMMINI_MVOUT GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_preload GPR:$rs1, GPR:$rs2),
+          (GEMMINI_PRELOAD GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_compute_preloaded GPR:$rs1, GPR:$rs2),
+          (GEMMINI_COMPUTE_PRELOADED GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_compute_accumulated GPR:$rs1, GPR:$rs2),
+          (GEMMINI_COMPUTE_ACCUMULATED GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_ws_config_bounds GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_WS_CONFIG_BOUNDS GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_ws_config_addrs_ab GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_WS_CONFIG_ADDRS_AB GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_ws_config_addrs_dc GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_WS_CONFIG_ADDRS_DC GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_ws_config_strides_ab GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_WS_CONFIG_STRIDES_AB GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_ws_config_strides_dc GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_WS_CONFIG_STRIDES_DC GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_ws GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_WS GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_conv_ws_config1 GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_CONV_WS_CONFIG1 GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_conv_ws_config2 GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_CONV_WS_CONFIG2 GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_conv_ws_config3 GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_CONV_WS_CONFIG3 GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_conv_ws_config4 GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_CONV_WS_CONFIG4 GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_conv_ws_config5 GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_CONV_WS_CONFIG5 GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_conv_ws_config6 GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_CONV_WS_CONFIG6 GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_loop_conv_ws GPR:$rs1, GPR:$rs2),
+          (GEMMINI_LOOP_CONV_WS GPR:$rs1, GPR:$rs2)>;
