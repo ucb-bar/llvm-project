@@ -1318,6 +1318,16 @@ OpFoldResult arith::DivFOp::fold(FoldAdaptor adaptor) {
   if (matchPattern(adaptor.getRhs(), m_OneFloat()))
     return getLhs();
 
+  // divf(mulf(x, c), c) -> x  (cancel matching scale factors)
+  // Common in QDQ quantization: requant(dequant(x)) where both use the same
+  // scale produces mulf then divf with the same constant.
+  if (auto mulOp = getLhs().getDefiningOp<arith::MulFOp>()) {
+    if (mulOp.getRhs() == getRhs())
+      return mulOp.getLhs();
+    if (mulOp.getLhs() == getRhs())
+      return mulOp.getRhs();
+  }
+
   return constFoldBinaryOp<FloatAttr>(
       adaptor.getOperands(),
       [](const APFloat &a, const APFloat &b) { return a / b; });
