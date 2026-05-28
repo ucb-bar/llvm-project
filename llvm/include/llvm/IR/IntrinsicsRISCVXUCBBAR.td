@@ -108,6 +108,20 @@ let TargetPrefix = "riscv" in {
       Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
                 [IntrHasSideEffects, IntrWillReturn]>;
 
+  // mxGemmini extensions: spad-source LOOP_WS preconfig (funct=24) and
+  // CONFIG_SCALE_MEM (funct=26 = mxquant_config_mvout).
+  def int_riscv_loop_ws_config_spad_ab :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_mxquant_config :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
+  def int_riscv_mvout_spad :
+      Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
+                [IntrHasSideEffects, IntrWillReturn]>;
+
   def int_riscv_loop_conv_ws_config1 :
       Intrinsic<[], [llvm_i64_ty, llvm_i64_ty],
                 [IntrHasSideEffects, IntrWillReturn]>;
